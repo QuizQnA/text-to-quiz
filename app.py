@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import requests
 import os
 
 app = Flask(__name__)
+CORS(app, origins=["https://devdual.com"])
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 @app.route("/", methods=["GET", "POST"])
