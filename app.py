@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 CORS(app, origins=["https://devdual.com"])
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -25,18 +25,20 @@ def api_generate():
 def generate_questions(text):
     prompt = f"Generate 5 quiz questions (MCQs or fill in the blanks) based on this text:\n{text}"
     headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Authorization": f"Bearer {os.getenv('COHERE_API_KEY')}",
         "Content-Type": "application/json"
     }
     body = {
-        "model": "gpt-3.5-turbo",
-        "messages": [{"role": "user", "content": prompt}]
+        "model": "command-r",  # Or "command", depending on your account
+        "prompt": prompt,
+        "max_tokens": 300,
+        "temperature": 0.7,
     }
     try:
-        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=body)
+        response = requests.post("https://api.cohere.ai/v1/generate", headers=headers, json=body)
         data = response.json()
-        content = data['choices'][0]['message']['content']
-        return content.strip().split('\n') if content else []
+        content = data.get("generations", [{}])[0].get("text", "")
+        return content.strip().split('\n') if content else ["No content returned."]
     except Exception as e:
         return [f"Error: {str(e)}"]
 
