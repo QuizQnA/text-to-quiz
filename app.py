@@ -22,25 +22,36 @@ def api_generate():
     questions = generate_questions(text)
     return jsonify({"questions": questions})
 
+import os
+import requests
+
 def generate_questions(text):
-    prompt = f"Generate 5 quiz questions (MCQs or fill in the blanks) based on this text:\n{text}"
+    api_key = os.getenv("COHERE_API_KEY")  # Environment variable
+    if not api_key:
+        return ["Cohere API key not set."]
+    
+    url = "https://api.cohere.ai/v1/generate"
+    prompt = f"Generate 5 quiz questions (multiple choice or fill-in-the-blanks) from the following text:\n\n{text}\n\n"
+
     headers = {
-        "Authorization": f"Bearer {os.getenv('COHERE_API_KEY')}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
-    body = {
-        "model": "command-r",  # Or "command", depending on your account
+
+    payload = {
+        "model": "command-r",
         "prompt": prompt,
         "max_tokens": 300,
-        "temperature": 0.7,
+        "temperature": 0.7
     }
-    try:
-        response = requests.post("https://api.cohere.ai/v1/generate", headers=headers, json=body)
-        data = response.json()
-        content = data.get("generations", [{}])[0].get("text", "")
-        return content.strip().split('\n') if content else ["No content returned."]
-    except Exception as e:
-        return [f"Error: {str(e)}"]
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        data = response.json()
+        if "generations" in data:
+            content = data["generations"][0].get("text", "")
+            return content.strip().split("\n") if content else ["No content generated."]
+        else:
+            return [f"Error: {data.get('message', 'Unexpected response')}"]
+    except Exception as e:
+        return [f"Exception: {str(e)}"]
