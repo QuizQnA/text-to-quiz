@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Text to Quiz Generator</title>
+</head>
+<body>
+  <h1>Text to Quiz (GPT API)</h1>
+  <form method="post">
+    <textarea name="text" rows="10" cols="80" placeholder="Paste your text here..."></textarea><br>
+    <button type="submit">Generate Quiz</button>
+  </form>
+  <h2>Generated Questions</h2>
+  <ul>
+    {% for q in questions %}
+      <li>{{ q }}</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
